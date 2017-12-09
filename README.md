@@ -1,4 +1,4 @@
-# go-diff 🌆 golang 🏙 DiffChecker
+# go-diff 📖 easy diff checking
 
 Package for robust diff checking
 
