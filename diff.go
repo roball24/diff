@@ -2,35 +2,53 @@ package diff
 
 import "io"
 
-type Writer = io.Writer  // Writer is an io.Writer
-type Reader = io.Reader  // Reader is an io.Reader
+// Writer is an io.Writer
+type Writer = io.Writer
+
+// Reader is an io.Reader
+type Reader = io.Reader
 
 // Checker can DiffCheck delimited io.Reader streams
 type Checker interface {
 	AddLineCompare(handler TwoLineCheckHandler, ft FailType) (id int64)
-    RemoveLineCompare(id int64)
-    AddLineIgnore(handler LineCheckHandler, ft FailType) (id int64)
-    RemoveLineIgnore(id int64)
-    Writer(w Writer)
-    LineCompletionHandler(handler TwoLineNumHandler)
-    Delimiters(baseDelim, diffDelim byte)
-    Run() error
-    Reader
+	RemoveLineCompare(id int64)
+	AddLineIgnore(handler LineCheckHandler, ft FailType) (id int64)
+	RemoveLineIgnore(id int64)
+	Writer(w Writer)
+	LineCompletionHandler(handler TwoLineNumHandler)
+	Delimiters(baseDelim, diffDelim byte)
+	Run() error
+	Reader
 }
 
-type WriteMode int64  // WriteMode configures Checker writes to Writer
+// WriteMode configures Checker writes to Writer
+type WriteMode int64
+
 const (
-    BasicWriteMode WriteMode = 1
+	// BasicWriteMode stub
+	BasicWriteMode WriteMode = 1
 )
 
-type FailType int64  // FailType configures Checker handler failure responses
+// FailType configures Checker handler failure responses
+type FailType int64
+
 const (
-    SoftFail     FailType = 1  // SoftFail will do nothing and continue to Run Checker
-    WarningFail  FailType = 2  // WarningFail will write errors to current Writer and continue to Run Checker
-    ErrorFail    FailType = 3  // ErrorFail will write to current Writer and terminate Checker's Run
+	// SoftFail will do nothing and continue to Run Checker
+	SoftFail FailType = 1
+	// WarningFail will write errors to current Writer and continue to Run Checker
+	WarningFail FailType = 2
+	// ErrorFail will write to current Writer and terminate Checker's Run
+	ErrorFail FailType = 3
 )
 
-type LineCheckHandler = func(line []byte) bool  // LineCheckHandler receives a line, returns a bool
-type TwoLineCheckHandler = func(baseLine, diffLine []byte) bool  // TwoLineCheckHandler receives two lines, returns a bool
-type TwoLineHandler = func(baseLine, diffLine []byte)  // TwoLineHandler receives two lines
-type TwoLineNumHandler = func(baseLineNum, diffLineNum int64)  // TwoLineNumHandler receives to line numbers
+// LineCheckHandler receives a line, returns a bool
+type LineCheckHandler = func(line []byte) bool
+
+// TwoLineCheckHandler receives two lines, returns a bool
+type TwoLineCheckHandler = func(baseLine, diffLine []byte) bool
+
+// TwoLineHandler receives two lines
+type TwoLineHandler = func(baseLine, diffLine []byte)
+
+// TwoLineNumHandler receives to line numbers
+type TwoLineNumHandler = func(baseLineNum, diffLineNum int64)
