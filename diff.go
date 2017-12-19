@@ -1,6 +1,9 @@
 package diff
 
-import "io"
+import (
+	"bytes"
+	"io"
+)
 
 // Writer is an io.Writer
 type Writer = io.Writer
@@ -8,21 +11,24 @@ type Writer = io.Writer
 // Reader is an io.Reader
 type Reader = io.Reader
 
+// FullEqual checks condition lines exactly the same
+var FullEqual = bytes.Equal
+
 // Checker can DiffCheck delimited io.Reader streams
 type Checker interface {
-	AddLineCompare(handler TwoLineCheckHandler, ft FailType) (id int64)
-	RemoveLineCompare(id int64)
-	AddLineIgnore(handler LineCheckHandler, ft FailType) (id int64)
-	RemoveLineIgnore(id int64)
-	Writer(w Writer)
-	LineCompletionHandler(handler TwoLineNumHandler)
+	AddLineCompare(handler TwoLineCheckHandler, ft FailType) (id int)
+	RemoveLineCompare(id int)
+	AddLineIgnore(handler LineCheckHandler, ft FailType) (id int)
+	RemoveLineIgnore(id int)
+	AddLineCompletionHandler(handler TwoLineNumHandler) (id int)
+	RemoveLineCompletionHandler(id int)
+	SetWriter(w Writer)
 	Delimiters(baseDelim, diffDelim byte)
-	Run() error
-	Reader
+	Run() (equal bool, err error)
 }
 
 // WriteMode configures Checker writes to Writer
-type WriteMode int64
+type WriteMode int
 
 const (
 	// BasicWriteMode stub
@@ -30,7 +36,7 @@ const (
 )
 
 // FailType configures Checker handler failure responses
-type FailType int64
+type FailType int
 
 const (
 	// SoftFail will do nothing and continue to Run Checker
@@ -45,10 +51,22 @@ const (
 type LineCheckHandler = func(line []byte) bool
 
 // TwoLineCheckHandler receives two lines, returns a bool
-type TwoLineCheckHandler = func(baseLine, diffLine []byte) bool
+type TwoLineCheckHandler = func(line1, line2 []byte) bool
 
 // TwoLineHandler receives two lines
-type TwoLineHandler = func(baseLine, diffLine []byte)
+type TwoLineHandler = func(chk Checker, line1, line2 []byte)
 
 // TwoLineNumHandler receives to line numbers
-type TwoLineNumHandler = func(baseLineNum, diffLineNum int64)
+type TwoLineNumHandler = func(chk Checker, lineNum1, lineNum2 int)
+
+// LineCompare is a comparision handler and FailType
+type LineCompare struct {
+	handler TwoLineCheckHandler
+	ft      FailType
+}
+
+// LineIgnore is an ignore handler and FailType
+type LineIgnore struct {
+	handler LineCheckHandler
+	ft      FailType
+}
