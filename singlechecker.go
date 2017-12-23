@@ -72,10 +72,10 @@ func (chk *SingleChecker) RemoveCondition(id int) {
 }
 
 // AddIgnore adds a line ignore rule
-func (chk *SingleChecker) AddIgnore(handler LineCheckHandler, ft FailType) (id int) {
+func (chk *SingleChecker) AddIgnore(handler LineCheckHandler) (id int) {
 	return insertAtRandomKey(
 		chk.ignores,
-		Ignore{handler: handler, ft: ft},
+		handler,
 	)
 }
 

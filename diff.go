@@ -10,7 +10,7 @@ import (
 type Checker interface {
 	AddCondition(handler TwoLineCheckHandler, ft FailType) (id int)
 	RemoveCondition(id int)
-	AddIgnore(handler LineCheckHandler, ft FailType) (id int)
+	AddIgnore(handler LineCheckHandler) (id int)
 	RemoveIgnore(id int)
 	AddBreakpoint(handler TwoLineNumHandler) (id int)
 	RemoveBreakpoint(id int)
@@ -76,12 +76,6 @@ type TwoLineNumHandler = func(chk Checker, lineNum1, lineNum2 int)
 // Condition is a comparision handler and FailType
 type Condition struct {
 	handler TwoLineCheckHandler
-	ft      FailType
-}
-
-// Ignore is an ignore handler and FailType
-type Ignore struct {
-	handler LineCheckHandler
 	ft      FailType
 }
 
