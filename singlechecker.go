@@ -48,6 +48,16 @@ func NewSingleChecker(rd1, rd2 Reader) (*SingleChecker, error) {
 	}, nil
 }
 
+func insertAtRandomKey(m map[int]interface{}, val interface{}) (id int) {
+	ok := true
+	for ok {
+		id = rand.Int()
+		_, ok = m[id]
+	}
+	m[id] = val
+	return id
+}
+
 // AddLineCompare adds a line compare rule
 func (chk *SingleChecker) AddLineCompare(handler TwoLineCheckHandler, ft FailType) (id int) {
 	return insertAtRandomKey(
@@ -120,19 +130,6 @@ func (chk *SingleChecker) Run() (equal bool) {
 		}
 		// TODO: line completion handler
 	}
-}
-
-func insertAtRandomKey(m map[int]interface{}, val interface{}) (id int) {
-	ok := true
-	for ok {
-		id, ok = func() (int, bool) {
-			id = rand.Int()
-			_, ok = m[id]
-			return id, ok
-		}()
-	}
-	m[id] = val
-	return id
 }
 
 func (chk *SingleChecker) readLines() {
