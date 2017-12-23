@@ -16,14 +16,13 @@ type bufReader = bufio.Reader
 
 type readerChan struct {
 	reader *bufReader
-	ch     chan []byte
+	ch     chan readerChanData
 	delim  byte
 }
 
-func (rchn *readerChan) read() (data []byte, err error) {
-	data, err = rchn.reader.ReadBytes(rchn.delim)
-	rchn.ch <- data
-	return data, err
+type readerChanData struct {
+	line []byte
+	num  int
 }
 
 // FullEqual checks condition lines exactly the same

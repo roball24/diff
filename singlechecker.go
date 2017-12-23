@@ -19,8 +19,7 @@ type SingleChecker struct {
 	lineIgnores            map[int]interface{}
 	lineCompletionHandlers map[int]interface{}
 
-	diffs       []*diff
-	currentLine int
+	diffs []*diff
 }
 
 // NewSingleChecker initializes a SingleChecker from io.Readers
@@ -99,17 +98,15 @@ func (chk *SingleChecker) Delimiters(delim1, delim2 byte) {
 
 // Run begins diff checking reader lines
 func (chk *SingleChecker) Run() (equal bool) {
-	chk.rch1.ch = make(chan []byte)
-	chk.rch2.ch = make(chan []byte)
+	chk.rch1.ch = make(chan readerChanData)
+	chk.rch2.ch = make(chan readerChanData)
 	// read lines to reader channels
 	// TODO: Panic on error, handle recovery
 	go chk.readLines()
-	chk.currentLine = 0
 	// handle data from reader channels
 	for {
-		line1, ok1 := <-chk.rch1.ch
-		line2, ok2 := <-chk.rch2.ch
-		chk.currentLine++
+		rcData1, ok1 := <-chk.rch1.ch
+		rcData2, ok2 := <-chk.rch2.ch
 		// handled EOF
 		if !ok1 || !ok2 {
 			return true
@@ -117,10 +114,11 @@ func (chk *SingleChecker) Run() (equal bool) {
 		// check line compares
 		for _, lcInt := range chk.lineCompares {
 			lineComp := lcInt.(LineCompare)
-			if !lineComp.handler(line1, line2) {
+			if !lineComp.handler(rcData1.line, rcData2.line) {
 				return false
 			}
 		}
+		// TODO: line completion handler
 	}
 }
 
@@ -140,18 +138,28 @@ func insertAtRandomKey(m map[int]interface{}, val interface{}) (id int) {
 func (chk *SingleChecker) readLines() {
 	defer close(chk.rch1.ch)
 	defer close(chk.rch2.ch)
+	lnum1 := 0
+	lnum2 := 0
 	for {
-		_, err1 := chk.rch1.read()
-		_, err2 := chk.rch2.read()
+		_, err1 := chk.read(chk.rch1, &lnum1)
+		_, err2 := chk.read(chk.rch2, &lnum2)
 		if err1 == io.EOF && err2 == io.EOF {
 			return
 		}
 		// files not same length TODO: Panic
-		if err1 == io.EOF && err2 != io.EOF {
+		if err1 == io.EOF {
 			return
 		}
-		if err1 != io.EOF && err2 == io.EOF {
+		if err2 == io.EOF {
 			return
 		}
 	}
+}
+
+func (chk *SingleChecker) read(rchn *readerChan, lineNum *int) (data []byte, err error) {
+	// TODO: line ignores
+	data, err = rchn.reader.ReadBytes(rchn.delim)
+	(*lineNum)++
+	rchn.ch <- readerChanData{line: data, num: *lineNum}
+	return data, err
 }
