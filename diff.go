@@ -1,6 +1,7 @@
 package diff
 
 import (
+	"bufio"
 	"bytes"
 	"io"
 )
@@ -10,6 +11,20 @@ type Writer = io.Writer
 
 // Reader is an io.Reader
 type Reader = io.Reader
+
+type bufReader = bufio.Reader
+
+type readerChan struct {
+	reader *bufReader
+	ch     chan []byte
+	delim  byte
+}
+
+func (rchn *readerChan) read() (data []byte, err error) {
+	data, err = rchn.reader.ReadBytes(rchn.delim)
+	rchn.ch <- data
+	return data, err
+}
 
 // FullEqual checks condition lines exactly the same
 var FullEqual = bytes.Equal
@@ -23,8 +38,8 @@ type Checker interface {
 	AddLineCompletionHandler(handler TwoLineNumHandler) (id int)
 	RemoveLineCompletionHandler(id int)
 	SetWriter(w Writer)
-	Delimiters(baseDelim, diffDelim byte)
-	Run() (equal bool, err error)
+	Delimiters(delim1, delim2 byte)
+	Run() (equal bool)
 }
 
 // WriteMode configures Checker writes to Writer
@@ -41,9 +56,9 @@ type FailType int
 const (
 	// SoftFail will do nothing and continue to Run Checker
 	SoftFail FailType = 1
-	// WarningFail will write errors to current Writer and continue to Run Checker
+	// WarningFail will write all errors to current Writer and continue to Run Checker
 	WarningFail FailType = 2
-	// ErrorFail will write to current Writer and terminate Checker's Run
+	// ErrorFail will write first failure to current Writer and terminate Checker's Run
 	ErrorFail FailType = 3
 )
 
@@ -69,4 +84,10 @@ type LineCompare struct {
 type LineIgnore struct {
 	handler LineCheckHandler
 	ft      FailType
+}
+
+type diff struct {
+	description  string
+	lineNum      int
+	line1, line2 []byte
 }

@@ -12,7 +12,7 @@ type FileChecker struct {
 
 // NewFileChecker initializes a FileChecker from files
 func NewFileChecker(fname1, fname2 string) (*FileChecker, error) {
-	f1, err := os.Open(fname2)
+	f1, err := os.Open(fname1)
 	if err != nil {
 		return nil, err
 	}
@@ -54,5 +54,5 @@ func DefaultFileCheck(fname1, fname2 string, verbose bool) (bool, error) {
 	if !verbose {
 		checker.SetWriter(nil)
 	}
-	return checker.Run()
+	return checker.Run(), nil
 }
