@@ -15,9 +15,9 @@ type SingleChecker struct {
 	rch2 *readerChan
 	wr   Writer
 
-	lineCompares           map[int]interface{}
-	lineIgnores            map[int]interface{}
-	lineCompletionHandlers map[int]interface{}
+	conditions  map[int]interface{}
+	ignores     map[int]interface{}
+	breakpoints map[int]interface{}
 
 	diffs []*diff
 }
@@ -41,10 +41,10 @@ func NewSingleChecker(rd1, rd2 Reader) (*SingleChecker, error) {
 			delim:  '\n',
 			ch:     nil,
 		},
-		wr:                     os.Stdout,
-		lineCompares:           make(map[int]interface{}, 0),
-		lineIgnores:            make(map[int]interface{}, 0),
-		lineCompletionHandlers: make(map[int]interface{}, 0),
+		wr:          os.Stdout,
+		conditions:  make(map[int]interface{}, 0),
+		ignores:     make(map[int]interface{}, 0),
+		breakpoints: make(map[int]interface{}, 0),
 	}, nil
 }
 
@@ -58,43 +58,43 @@ func insertAtRandomKey(m map[int]interface{}, val interface{}) (id int) {
 	return id
 }
 
-// AddLineCompare adds a line compare rule
-func (chk *SingleChecker) AddLineCompare(handler TwoLineCheckHandler, ft FailType) (id int) {
+// AddCondition adds a line compare rule
+func (chk *SingleChecker) AddCondition(handler TwoLineCheckHandler, ft FailType) (id int) {
 	return insertAtRandomKey(
-		chk.lineCompares,
-		LineCompare{handler: handler, ft: ft},
+		chk.conditions,
+		Condition{handler: handler, ft: ft},
 	)
 }
 
-// RemoveLineCompare removes a line compare rule
-func (chk *SingleChecker) RemoveLineCompare(id int) {
-	delete(chk.lineCompares, id)
+// RemoveCondition removes a line compare rule
+func (chk *SingleChecker) RemoveCondition(id int) {
+	delete(chk.conditions, id)
 }
 
-// AddLineIgnore adds a line ignore rule
-func (chk *SingleChecker) AddLineIgnore(handler LineCheckHandler, ft FailType) (id int) {
+// AddIgnore adds a line ignore rule
+func (chk *SingleChecker) AddIgnore(handler LineCheckHandler, ft FailType) (id int) {
 	return insertAtRandomKey(
-		chk.lineIgnores,
-		LineIgnore{handler: handler, ft: ft},
+		chk.ignores,
+		Ignore{handler: handler, ft: ft},
 	)
 }
 
-// RemoveLineIgnore removes a line ignore rule
-func (chk *SingleChecker) RemoveLineIgnore(id int) {
-	delete(chk.lineIgnores, id)
+// RemoveIgnore removes a line ignore rule
+func (chk *SingleChecker) RemoveIgnore(id int) {
+	delete(chk.ignores, id)
 }
 
-// AddLineCompletionHandler adds a line handler
-func (chk *SingleChecker) AddLineCompletionHandler(handler TwoLineNumHandler) (id int) {
+// AddBreakpoint adds a line handler
+func (chk *SingleChecker) AddBreakpoint(handler TwoLineNumHandler) (id int) {
 	return insertAtRandomKey(
-		chk.lineCompletionHandlers,
+		chk.breakpoints,
 		handler,
 	)
 }
 
-// RemoveLineCompletionHandler removes a line handler
-func (chk *SingleChecker) RemoveLineCompletionHandler(id int) {
-	delete(chk.lineCompletionHandlers, id)
+// RemoveBreakpoint removes a line handler
+func (chk *SingleChecker) RemoveBreakpoint(id int) {
+	delete(chk.breakpoints, id)
 }
 
 // SetWriter assigns output writer
@@ -121,14 +121,14 @@ func (chk *SingleChecker) Run() (equal bool) {
 		if !ok1 || !ok2 {
 			return true
 		}
+		// TODO: breakpoint
 		// check line compares
-		for _, lcInt := range chk.lineCompares {
-			lineComp := lcInt.(LineCompare)
-			if !lineComp.handler(rcData1.line, rcData2.line) {
+		for _, condInt := range chk.conditions {
+			cond := condInt.(Condition)
+			if !cond.handler(rcData1.line, rcData2.line) {
 				return false
 			}
 		}
-		// TODO: line completion handler
 	}
 }
 

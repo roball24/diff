@@ -50,7 +50,7 @@ func DefaultFileCheck(fname1, fname2 string, verbose bool) (bool, error) {
 	}
 	defer checker.Close()
 
-	checker.AddLineCompare(FullEqual, ErrorFail)
+	checker.AddCondition(FullEqual, ErrorFail)
 	if !verbose {
 		checker.SetWriter(nil)
 	}

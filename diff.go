@@ -6,6 +6,19 @@ import (
 	"io"
 )
 
+// Checker can DiffCheck delimited io.Reader streams
+type Checker interface {
+	AddCondition(handler TwoLineCheckHandler, ft FailType) (id int)
+	RemoveCondition(id int)
+	AddIgnore(handler LineCheckHandler, ft FailType) (id int)
+	RemoveIgnore(id int)
+	AddBreakpoint(handler TwoLineNumHandler) (id int)
+	RemoveBreakpoint(id int)
+	SetWriter(w Writer)
+	Delimiters(delim1, delim2 byte)
+	Run() (equal bool)
+}
+
 // Writer is an io.Writer
 type Writer = io.Writer
 
@@ -27,19 +40,6 @@ type readerChanData struct {
 
 // FullEqual checks condition lines exactly the same
 var FullEqual = bytes.Equal
-
-// Checker can DiffCheck delimited io.Reader streams
-type Checker interface {
-	AddLineCompare(handler TwoLineCheckHandler, ft FailType) (id int)
-	RemoveLineCompare(id int)
-	AddLineIgnore(handler LineCheckHandler, ft FailType) (id int)
-	RemoveLineIgnore(id int)
-	AddLineCompletionHandler(handler TwoLineNumHandler) (id int)
-	RemoveLineCompletionHandler(id int)
-	SetWriter(w Writer)
-	Delimiters(delim1, delim2 byte)
-	Run() (equal bool)
-}
 
 // WriteMode configures Checker writes to Writer
 type WriteMode int
@@ -73,14 +73,14 @@ type TwoLineHandler = func(chk Checker, line1, line2 []byte)
 // TwoLineNumHandler receives to line numbers
 type TwoLineNumHandler = func(chk Checker, lineNum1, lineNum2 int)
 
-// LineCompare is a comparision handler and FailType
-type LineCompare struct {
+// Condition is a comparision handler and FailType
+type Condition struct {
 	handler TwoLineCheckHandler
 	ft      FailType
 }
 
-// LineIgnore is an ignore handler and FailType
-type LineIgnore struct {
+// Ignore is an ignore handler and FailType
+type Ignore struct {
 	handler LineCheckHandler
 	ft      FailType
 }
