@@ -1,4 +1,4 @@
-# go-diff 📖 easy diff checking
+# diff
 
 Package for robust diff checking
 
