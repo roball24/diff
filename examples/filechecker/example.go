@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/roball24/go-diff"
+	"github.com/roball24/diff"
 )
 
 func main() {
